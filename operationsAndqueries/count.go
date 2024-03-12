@@ -47,19 +47,21 @@ func CountDaughters(db *gorm.DB, name string) (int, error) {
 	return count, nil
 }
 
-// Function to count wives of a person
+// CountWives returns the number of wives for a given person.
 func CountWives(db *gorm.DB, name string) (int, error) {
 	var count int
 	var person models.Person
 
+	// Find the person by name
 	if err := db.Where("username = ?", name).First(&person).Error; err != nil {
 		return 0, err
 	}
 
-	if err := db.Model(&models.Relationship{}).Where("person_id = ? AND relationship_type = ?", person.ID, models.Wife).Count(&count).Error; err != nil {
-		// Check if the error is due to relationship type not found
+	// Count the number of wives for the person
+	if err := db.Model(&models.Relationship{}).Where("related_person_id = ? AND relationship_type = ?", person.ID, models.Wife).Count(&count).Error; err != nil {
+		// Check if the error is due to no wives found
 		if err == gorm.ErrRecordNotFound {
-			return 0, nil // No daughters found, return count as 0
+			return 0, nil // No wives found, return count as 0
 		}
 		return 0, err
 	}
